@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model it_helpdesk_units {
+  unit_id   String                @id @db.VarChar(10)
+  unit_name String                @db.VarChar(100)
+  tickets   it_helpdesk_tickets[]
+}
+
+model it_helpdesk_request_statuses {
+  status_id   String                @id @db.VarChar(10)
+  status_name String                @db.VarChar(50)
+  tickets     it_helpdesk_tickets[]
+}
+
+model it_helpdesk_technicians {
+  technician_id   String                @id @db.VarChar(10)
+  technician_name String                @db.VarChar(100)
+  tickets         it_helpdesk_tickets[]
+}
+
+model it_helpdesk_request_types {
+  request_type_id   String                   @id @db.VarChar(10)
+  request_type_name String                   @db.VarChar(100)
+  categories        it_helpdesk_categories[]
+  tickets           it_helpdesk_tickets[]
+}
+
+model it_helpdesk_categories {
+  category_id     String                      @id @db.VarChar(10)
+  request_type_id String                      @db.VarChar(10)
+  category_name   String                      @db.VarChar(100)
+  request_type    it_helpdesk_request_types   @relation(fields: [request_type_id], references: [request_type_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_category_request_type")
+  subcategories   it_helpdesk_subcategories[]
+  tickets         it_helpdesk_tickets[]
+
+  @@index([request_type_id], map: "fk_category_request_type")
+}
+
+model it_helpdesk_subcategories {
+  subcategory_id   String                 @id @db.VarChar(10)
+  category_id      String                 @db.VarChar(10)
+  subcategory_name String                 @db.VarChar(100)
+  category         it_helpdesk_categories @relation(fields: [category_id], references: [category_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_subcategory_category")
+  tickets          it_helpdesk_tickets[]
+
+  @@index([category_id], map: "fk_subcategory_category")
+}
+
+model it_helpdesk_users {
+  user_id  String                 @id @db.VarChar(10)
+  email    String                 @unique(map: "email") @db.VarChar(100)
+  password String                 @db.VarChar(255)
+  role     it_helpdesk_users_role
+  tickets  it_helpdesk_tickets[]
+}
+
+model it_helpdesk_tickets {
+  ticket_id       String                       @id @db.VarChar(20)
+  requester_name  String                       @db.VarChar(100)
+  unit_id         String                       @db.VarChar(100)
+  request_type_id String                       @db.VarChar(100)
+  category_id     String                       @db.VarChar(100)
+  subcategory_id  String                       @db.VarChar(100)
+  subject         String                       @db.Text
+  status_id       String                       @db.VarChar(100)
+  technician_id   String?                      @db.VarChar(100)
+  user_id         String                       @db.VarChar(100)
+  tahun           String                       @db.Char(4)
+  bulan           String                       @db.Char(2)
+  category        it_helpdesk_categories       @relation(fields: [category_id], references: [category_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ticket_category")
+  request_type    it_helpdesk_request_types    @relation(fields: [request_type_id], references: [request_type_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ticket_request_type")
+  status          it_helpdesk_request_statuses @relation(fields: [status_id], references: [status_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ticket_status")
+  subcategory     it_helpdesk_subcategories    @relation(fields: [subcategory_id], references: [subcategory_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ticket_subcategory")
+  technician      it_helpdesk_technicians?     @relation(fields: [technician_id], references: [technician_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ticket_technician")
+  unit            it_helpdesk_units            @relation(fields: [unit_id], references: [unit_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ticket_unit")
+  user            it_helpdesk_users            @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ticket_user")
+
+  @@index([category_id], map: "fk_ticket_category")
+  @@index([request_type_id], map: "fk_ticket_request_type")
+  @@index([status_id], map: "fk_ticket_status")
+  @@index([subcategory_id], map: "fk_ticket_subcategory")
+  @@index([technician_id], map: "fk_ticket_technician")
+  @@index([unit_id], map: "fk_ticket_unit")
+  @@index([user_id], map: "fk_ticket_user")
+}
+
+enum it_helpdesk_users_role {
+  user
+  admin
+}

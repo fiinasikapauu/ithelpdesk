@@ -1,0 +1,28 @@
+<header class="bg-white shadow-sm border-b-4 border-lps-orange">
+    <div
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <img src="/images/lps.png" alt="LPS Logo" class="h-10 w-auto">
+            <div class="text-left">
+                <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Lembaga Penjamin Simpanan</p>
+                <p class="text-gray-800 font-semibold text-sm">
+                    <%= typeof headerTitle !=='undefined' ? headerTitle : 'Helpdesk Ticketing System' %>
+                </p>
+            </div>
+        </div>
+        <nav class="flex gap-3">
+            <% if (typeof userRole !=='undefined' && userRole==='admin' ) { %>
+                <a href="/admin/dashboard"
+                    class="px-5 py-2 rounded-lg text-sm font-semibold bg-lps-orange text-white shadow-sm">Admin
+                    Dashboard</a>
+                <% } else { %>
+                    <a href="/user/form"
+                        class="px-5 py-2 rounded-lg text-sm font-semibold transition-all <%= typeof activePage !== 'undefined' && activePage === 'form' ? 'bg-lps-orange text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-300 hover:border-lps-orange' %>">Form
+                        Pengaduan</a>
+                    <a href="/user/riwayat"
+                        class="px-5 py-2 rounded-lg text-sm font-semibold transition-all <%= typeof activePage !== 'undefined' && activePage === 'riwayat' ? 'bg-lps-orange text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-300 hover:border-lps-orange' %>">Riwayat
+                        Pengaduan</a>
+                    <% } %>
+        </nav>
+    </div>
+</header>

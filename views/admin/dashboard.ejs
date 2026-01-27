@@ -1,0 +1,935 @@
+﻿<%- include('../partials/head', { title: title }) %>
+    <style>
+        .custom-dropdown-overrides {
+            max-height: 20rem !important;
+        }
+
+        .modal-dropdown-overrides {
+            max-height: 15rem !important;
+            width: 100% !important;
+            position: absolute !important;
+            z-index: 9999 !important;
+        }
+    </style>
+
+    <body class="min-h-screen bg-gray-50">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b-4 border-lps-orange">
+            <div
+                class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <img src="/images/lps.png" alt="LPS Logo" class="h-10 w-auto">
+                    <div class="text-left">
+                        <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Lembaga Penjamin Simpanan
+                        </p>
+                        <p class="text-gray-800 font-semibold text-sm">Helpdesk Ticketing System - Admin</p>
+                    </div>
+                </div>
+                <nav class="flex gap-3">
+                    <span class="px-5 py-2 rounded-lg text-sm font-semibold bg-lps-orange text-white shadow-sm">Admin
+                        Dashboard</span>
+                    <a href="/auth/logout"
+                        class="px-5 py-2 rounded-lg text-sm font-semibold bg-white text-gray-700 border border-gray-300 hover:border-lps-orange transition-all">Logout</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Power BI Button -->
+        <div class="max-w-7xl mx-auto px-4 mt-6">
+            <a href="https://app.powerbi.com/links/bNGE0oi8sH?ctid=34627874-ed3a-497c-8fb9-16ce7e9764f1&pbi_source=linkShare"
+                target="_blank"
+                class="block w-full bg-gradient-to-r from-lps-orange to-lps-orange-light text-white text-center py-4 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                    <line x1="9" y1="21" x2="9" y2="9"></line>
+                </svg>
+                <span class="hidden sm:inline">Buka Power BI Dashboard</span>
+                <span class="sm:hidden">Power BI</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+            </a>
+        </div>
+
+        <!-- Filters -->
+        <div class="max-w-7xl mx-auto px-4 mt-6">
+            <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <form method="GET" action="/admin/dashboard"
+                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end">
+                    <!-- Filter Status -->
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-2">Filter Status</label>
+                        <% const selectedStatus=statuses.find(s=> s.status_id === filters.status); %>
+                            <div class="relative w-full" id="statusFilterContainer">
+                                <input type="hidden" name="status" id="statusInputHidden"
+                                    value="<%= filters.status || '' %>">
+                                <input type="text" id="statusSearchInput" placeholder="Semua Status" autocomplete="off"
+                                    class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-lps-orange focus:bg-white transition-all cursor-pointer truncate text-gray-900"
+                                    value="<%= selectedStatus ? selectedStatus.status_name : 'Semua Status' %>">
+
+                                <div id="statusDropdown"
+                                    class="hidden absolute z-50 w-full custom-dropdown-overrides mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl overflow-y-auto ring-1 ring-black/5 divide-y divide-gray-50 transform origin-top left-0 filter-dropdown-animation">
+                                    <div class="px-4 py-3 hover:bg-orange-50 hover:text-lps-orange cursor-pointer text-sm font-medium transition-colors duration-200"
+                                        onclick="selectStatus('', '')">
+                                        Semua Status
+                                    </div>
+                                    <% statuses.forEach(s=> { %>
+                                        <div class="px-4 py-3 hover:bg-orange-50 hover:text-lps-orange cursor-pointer text-sm text-gray-600 transition-colors duration-200 status-option group flex items-center justify-between"
+                                            data-name="<%= s.status_name.toLowerCase() %>"
+                                            onclick="selectStatus('<%= s.status_id %>', '<%= s.status_name %>')">
+                                            <span class="block truncate">
+                                                <%= s.status_name %>
+                                            </span>
+                                        </div>
+                                        <% }) %>
+                                </div>
+                            </div>
+                    </div>
+
+                    <!-- Filter Unit Kerja -->
+                    <div class="relative" id="unitFilterContainer">
+                        <label class="block text-xs font-medium text-gray-600 mb-2">Filter Unit Kerja</label>
+                        <% const selectedUnit=units.find(u=> u.unit_id === filters.unit); %>
+                            <input type="hidden" name="unit" id="unitInputHidden" value="<%= filters.unit || '' %>">
+                            <div class="relative w-full">
+                                <input type="text" id="unitSearchInput" placeholder="Semua Unit Kerja"
+                                    autocomplete="off"
+                                    class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-lps-orange focus:bg-white transition-all cursor-pointer truncate text-gray-900"
+                                    value="<%= selectedUnit ? selectedUnit.unit_name : 'Semua Unit Kerja' %>"
+                                    onfocus="if(this.value==='Semua Unit Kerja') this.value=''"
+                                    onblur="if(this.value==='') this.value='Semua Unit Kerja'">
+                            </div>
+
+                            <!-- Dropdown Options -->
+                            <div id="unitDropdown"
+                                class="hidden absolute z-50 min-w-full w-max custom-dropdown-overrides mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl overflow-y-auto ring-1 ring-black/5 divide-y divide-gray-50 transform origin-top left-0 filter-dropdown-animation">
+                                <div class="px-4 py-3 hover:bg-orange-50 hover:text-lps-orange cursor-pointer text-sm font-medium transition-colors duration-200"
+                                    onclick="selectUnit('', '')">
+                                    Semua Unit Kerja
+                                </div>
+                                <% units.forEach(u=> { %>
+                                    <div class="px-4 py-3 hover:bg-orange-50 hover:text-lps-orange cursor-pointer text-sm text-gray-600 transition-colors duration-200 unit-option group flex items-center justify-between"
+                                        data-name="<%= u.unit_name.toLowerCase() %>"
+                                        onclick="selectUnit('<%= u.unit_id %>', '<%= u.unit_name %>')">
+                                        <span class="block truncate">
+                                            <%= u.unit_name %>
+                                        </span>
+                                    </div>
+                                    <% }) %>
+                            </div>
+                    </div>
+
+                    <!-- Filter Bulan -->
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-2">Filter Bulan</label>
+                        <% const months=[ {id: '01' , name: 'Januari' }, {id: '02' , name: 'Februari' }, {id: '03' ,
+                            name: 'Maret' }, {id: '04' , name: 'April' }, {id: '05' , name: 'Mei' }, {id: '06' ,
+                            name: 'Juni' }, {id: '07' , name: 'Juli' }, {id: '08' , name: 'Agustus' }, {id: '09' ,
+                            name: 'September' }, {id: '10' , name: 'Oktober' }, {id: '11' , name: 'November' },
+                            {id: '12' , name: 'Desember' } ]; const selectedMonth=months.find(m=> m.id ===
+                            filters.bulan);
+                            %>
+                            <div class="relative w-full" id="bulanFilterContainer">
+                                <input type="hidden" name="bulan" id="bulanInputHidden"
+                                    value="<%= filters.bulan || '' %>">
+                                <input type="text" id="bulanSearchInput" placeholder="Semua Bulan" autocomplete="off"
+                                    class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-lps-orange focus:bg-white transition-all cursor-pointer truncate text-gray-900"
+                                    value="<%= selectedMonth ? selectedMonth.name : 'Semua Bulan' %>">
+
+                                <div id="bulanDropdown"
+                                    class="hidden absolute z-50 w-full custom-dropdown-overrides mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl overflow-y-auto ring-1 ring-black/5 divide-y divide-gray-50 transform origin-top left-0 filter-dropdown-animation">
+                                    <div class="px-4 py-3 hover:bg-orange-50 hover:text-lps-orange cursor-pointer text-sm font-medium transition-colors duration-200"
+                                        onclick="selectBulan('', '')">
+                                        Semua Bulan
+                                    </div>
+                                    <% months.forEach(m=> { %>
+                                        <div class="px-4 py-3 hover:bg-orange-50 hover:text-lps-orange cursor-pointer text-sm text-gray-600 transition-colors duration-200 bulan-option group flex items-center justify-between"
+                                            data-name="<%= m.name.toLowerCase() %>"
+                                            onclick="selectBulan('<%= m.id %>', '<%= m.name %>')">
+                                            <span class="block truncate">
+                                                <%= m.name %>
+                                            </span>
+                                        </div>
+                                        <% }) %>
+                                </div>
+                            </div>
+                    </div>
+
+                    <!-- Filter Tahun -->
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-2">Filter Tahun</label>
+                        <div class="relative w-full" id="tahunFilterContainer">
+                            <input type="hidden" name="tahun" id="tahunInputHidden" value="<%= filters.tahun || '' %>">
+                            <input type="text" id="tahunSearchInput" placeholder="Semua Tahun" autocomplete="off"
+                                class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-lps-orange focus:bg-white transition-all cursor-pointer truncate text-gray-900"
+                                value="<%= filters.tahun || 'Semua Tahun' %>">
+
+                            <div id="tahunDropdown"
+                                class="hidden absolute z-50 w-full custom-dropdown-overrides mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl overflow-y-auto ring-1 ring-black/5 divide-y divide-gray-50 transform origin-top left-0 filter-dropdown-animation">
+                                <div class="px-4 py-3 hover:bg-orange-50 hover:text-lps-orange cursor-pointer text-sm font-medium transition-colors duration-200"
+                                    onclick="selectTahun('', '')">
+                                    Semua Tahun
+                                </div>
+                                <% years.forEach(y=> { %>
+                                    <div class="px-4 py-3 hover:bg-orange-50 hover:text-lps-orange cursor-pointer text-sm text-gray-600 transition-colors duration-200 tahun-option group flex items-center justify-between"
+                                        data-name="<%= y.toString().toLowerCase() %>"
+                                        onclick="selectTahun('<%= y %>', '<%= y %>')">
+                                        <span class="block truncate">
+                                            <%= y %>
+                                        </span>
+                                    </div>
+                                    <% }) %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search -->
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-2">Cari Tiket</label>
+                        <input type="text" name="search" placeholder="No Tiket / Subject"
+                            value="<%= filters.search || '' %>"
+                            class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-lps-orange focus:bg-white transition-all">
+                    </div>
+
+                    <!-- Filter Button -->
+                    <div>
+                        <button type="submit"
+                            class="w-full bg-lps-orange text-white py-2.5 rounded-lg font-semibold hover:bg-lps-orange-light transition-all flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="M21 21l-4.35-4.35"></path>
+                            </svg>
+                            Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tickets Table -->
+        <div class="max-w-7xl mx-auto px-4 mt-6 mb-8">
+            <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                    <h2 class="text-xl font-bold text-gray-800">Daftar Tiket Pengaduan</h2>
+                    <a href="/admin/export-csv<%= Object.keys(filters).length > 0 ? '?' + new URLSearchParams(filters).toString() : '' %>"
+                        class="bg-lps-blue text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-all flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Export CSV
+                    </a>
+                </div>
+
+                <!-- Desktop Table -->
+                <div class="hidden lg:block overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b-2 border-gray-100">
+                                <th
+                                    class="text-left py-4 px-3 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                    No
+                                    Tiket</th>
+                                <th
+                                    class="text-left py-4 px-3 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                    Unit Kerja</th>
+                                <th
+                                    class="text-left py-4 px-3 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                    Status</th>
+                                <th
+                                    class="text-left py-4 px-3 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                    Subjek</th>
+                                <th
+                                    class="text-left py-4 px-3 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                    Requester</th>
+                                <th
+                                    class="text-left py-4 px-3 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                    Type</th>
+                                <th
+                                    class="text-left py-4 px-3 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                    Technician</th>
+                                <th
+                                    class="text-left py-4 px-3 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                    Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <% if (tickets.length===0) { %>
+                                <tr>
+                                    <td colspan="12" class="text-center py-12 text-gray-400">
+                                        <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none"
+                                            stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                            <path
+                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                            </path>
+                                        </svg>
+                                        Tidak ada tiket ditemukan
+                                    </td>
+                                </tr>
+                                <% } else { %>
+                                    <% tickets.forEach((ticket)=> { %>
+                                        <tr class="hover:bg-gray-50 transition-colors">
+                                            <td class="py-4 px-3 text-sm font-bold text-gray-800">
+                                                <%= ticket.ticket_id %>
+                                            </td>
+                                            <td class="py-4 px-3 text-sm text-gray-600 max-w-[120px] truncate"
+                                                title="<%= ticket.unit?.unit_name || '-' %>">
+                                                <%= ticket.unit?.unit_name || '-' %>
+                                            </td>
+                                            <td class="py-4 px-3">
+                                                <% let statusColor='bg-gray-100 text-gray-600' ; let
+                                                    statusName=ticket.status?.status_name || 'Unknown' ; if
+                                                    (statusName.toLowerCase()==='open' )
+                                                    statusColor='bg-green-100 text-green-700' ; else if
+                                                    (statusName.toLowerCase()==='closed' )
+                                                    statusColor='bg-blue-100 text-blue-700' ; else if
+                                                    (statusName.toLowerCase()==='on hold' )
+                                                    statusColor='bg-yellow-100 text-yellow-700' ; else if
+                                                    (statusName.toLowerCase()==='cancelled' )
+                                                    statusColor='bg-red-100 text-red-700' ; %>
+                                                    <span
+                                                        class="px-2 py-1 rounded-full text-xs font-bold uppercase <%= statusColor %>">
+                                                        <%= statusName %>
+                                                    </span>
+                                            </td>
+                                            <td class="py-4 px-3 text-sm text-gray-600 max-w-[150px] truncate"
+                                                title="<%= ticket.subject %>">
+                                                <%= ticket.subject || '-' %>
+                                            </td>
+                                            <td class="py-4 px-3 text-sm text-gray-600">
+                                                <%= ticket.requester_name || '-' %>
+                                            </td>
+                                            <td class="py-4 px-3 text-sm text-gray-600">
+                                                <%= ticket.request_type?.request_type_name || '-' %>
+                                            </td>
+                                            <td class="py-4 px-3 text-sm text-gray-600">
+                                                <%= ticket.technician?.technician_name || '-' %>
+                                            </td>
+                                            <td class="py-4 px-3">
+                                                <div class="flex items-center gap-2">
+                                                    <button onclick="showDetail('<%= ticket.ticket_id %>')"
+                                                        class="text-gray-400 hover:text-lps-blue transition-colors p-1"
+                                                        title="Lihat Detail">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                            stroke-width="2" viewBox="0 0 24 24">
+                                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z">
+                                                            </path>
+                                                            <circle cx="12" cy="12" r="3"></circle>
+                                                        </svg>
+                                                    </button>
+                                                    <button onclick="showEditModal('<%= ticket.ticket_id %>')"
+                                                        class="text-gray-400 hover:text-lps-orange transition-colors p-1"
+                                                        title="Edit Status">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                            stroke-width="2" viewBox="0 0 24 24">
+                                                            <path
+                                                                d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7">
+                                                            </path>
+                                                            <path
+                                                                d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z">
+                                                            </path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <% }) %>
+                                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile/Tablet Cards -->
+                <div class="lg:hidden space-y-4">
+                    <% if (tickets.length===0) { %>
+                        <div class="text-center py-12 text-gray-400">
+                            <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor"
+                                stroke-width="1.5" viewBox="0 0 24 24">
+                                <path
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
+                            </svg>
+                            Tidak ada tiket ditemukan
+                        </div>
+                        <% } else { %>
+                            <% tickets.forEach((ticket)=> { %>
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div>
+                                            <p class="text-sm font-bold text-gray-800">Tiket #<%= ticket.ticket_id %>
+                                            </p>
+                                            <p class="text-xs text-gray-500">
+                                                <%= ticket.tahun %>/<%= ticket.bulan %>
+                                            </p>
+                                        </div>
+                                        <% let mobileStatusColor='bg-gray-100 text-gray-600' ; let
+                                            mobileStatusName=ticket.status?.status_name || 'Unknown' ; if
+                                            (mobileStatusName.toLowerCase()==='open' )
+                                            mobileStatusColor='bg-green-100 text-green-700' ; else if
+                                            (mobileStatusName.toLowerCase()==='closed' )
+                                            mobileStatusColor='bg-blue-100 text-blue-700' ; else if
+                                            (mobileStatusName.toLowerCase()==='on hold' )
+                                            mobileStatusColor='bg-yellow-100 text-yellow-700' ; else if
+                                            (mobileStatusName.toLowerCase()==='cancelled' )
+                                            mobileStatusColor='bg-red-100 text-red-700' ; %>
+                                            <span
+                                                class="px-2 py-1 rounded-full text-xs font-bold uppercase <%= mobileStatusColor %>">
+                                                <%= mobileStatusName %>
+                                            </span>
+                                    </div>
+
+                                    <p class="text-sm text-gray-700 font-medium mb-2 line-clamp-2">
+                                        <%= ticket.subject || '-' %>
+                                    </p>
+
+                                    <div class="grid grid-cols-2 gap-2 text-xs text-gray-500 mb-3">
+                                        <div>
+                                            <span class="font-medium">Requester:</span>
+                                            <%= ticket.requester_name || '-' %>
+                                        </div>
+                                        <div>
+                                            <span class="font-medium">Unit:</span>
+                                            <%= ticket.unit?.unit_name || '-' %>
+                                        </div>
+                                        <div>
+                                            <span class="font-medium">Category:</span>
+                                            <%= ticket.category?.category_name || '-' %>
+                                        </div>
+                                        <div>
+                                            <span class="font-medium">Technician:</span>
+                                            <%= ticket.technician?.technician_name || '-' %>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-2 pt-3 border-t border-gray-200">
+                                        <button onclick="showDetail('<%= ticket.ticket_id %>')"
+                                            class="flex-1 py-2 text-sm font-medium text-lps-blue border border-lps-blue rounded-lg hover:bg-lps-blue hover:text-white transition-all flex items-center justify-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                                                viewBox="0 0 24 24">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                            Detail
+                                        </button>
+                                        <button onclick="showEditModal('<%= ticket.ticket_id %>')"
+                                            class="flex-1 py-2 text-sm font-medium text-white bg-lps-orange rounded-lg hover:bg-lps-orange-light transition-all flex items-center justify-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                                                viewBox="0 0 24 24">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7">
+                                                </path>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z">
+                                                </path>
+                                            </svg>
+                                            Edit
+                                        </button>
+                                    </div>
+                                </div>
+                                <% }) %>
+                                    <% } %>
+                </div>
+
+
+
+                <!-- Pagination -->
+                <div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
+                    <p class="text-sm text-gray-500">
+                        Menampilkan <%= tickets.length %> dari <%= pagination.totalTickets %> tiket
+                    </p>
+
+                    <div class="flex items-center gap-2">
+                        <% const buildQuery=(page)=> {
+                            const params = new URLSearchParams();
+                            Object.keys(filters).forEach(key => {
+                            if (filters[key] && filters[key] !== 'undefined') {
+                            params.append(key, filters[key]);
+                            }
+                            });
+                            params.set('page', page);
+                            return '?' + params.toString();
+                            };
+
+                            // Logic for sliding window of pages (max 5 shown)
+                            let startPage = Math.max(1, pagination.currentPage - 2);
+                            let endPage = Math.min(pagination.totalPages, startPage + 4);
+
+                            if (endPage - startPage < 4) { startPage=Math.max(1, endPage - 4); } %>
+
+                                <!-- Previous Button -->
+                                <% if (pagination.hasPrevPage) { %>
+                                    <a href="<%= buildQuery(pagination.currentPage - 1) %>"
+                                        class="flex items-center gap-2 px-4 py-2 border-2 border-lps-blue text-lps-blue rounded-lg text-sm font-bold hover:bg-blue-50 transition-all">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7">
+                                            </path>
+                                        </svg>
+                                        Previous
+                                    </a>
+                                    <% } else { %>
+                                        <button disabled
+                                            class="flex items-center gap-2 px-4 py-2 border-2 border-gray-300 text-gray-400 rounded-lg text-sm font-bold cursor-not-allowed">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M15 19l-7-7 7-7">
+                                                </path>
+                                            </svg>
+                                            Previous
+                                        </button>
+                                        <% } %>
+
+                                            <!-- Page Numbers -->
+                                            <div class="flex items-center gap-2 mx-2">
+                                                <% for(let i=startPage; i <=endPage; i++) { %>
+                                                    <% if (i===pagination.currentPage) { %>
+                                                        <span
+                                                            class="w-10 h-10 flex items-center justify-center bg-lps-orange text-white rounded-lg text-sm font-bold shadow-md transform scale-110">
+                                                            <%= i %>
+                                                        </span>
+                                                        <% } else { %>
+                                                            <a href="<%= buildQuery(i) %>"
+                                                                class="w-10 h-10 flex items-center justify-center border-2 border-lps-blue text-lps-blue rounded-lg text-sm font-bold hover:bg-blue-50 transition-all">
+                                                                <%= i %>
+                                                            </a>
+                                                            <% } %>
+                                                                <% } %>
+                                            </div>
+
+                                            <!-- Next Button -->
+                                            <% if (pagination.hasNextPage) { %>
+                                                <a href="<%= buildQuery(pagination.currentPage + 1) %>"
+                                                    class="flex items-center gap-2 px-4 py-2 border-2 border-lps-blue text-lps-blue rounded-lg text-sm font-bold hover:bg-blue-50 transition-all">
+                                                    Next
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                        stroke-width="2.5" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="M9 5l7 7-7 7"></path>
+                                                    </svg>
+                                                </a>
+                                                <% } else { %>
+                                                    <button disabled
+                                                        class="flex items-center gap-2 px-4 py-2 border-2 border-gray-300 text-gray-400 rounded-lg text-sm font-bold cursor-not-allowed">
+                                                        Next
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                            stroke-width="2.5" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                d="M9 5l7 7-7 7"></path>
+                                                        </svg>
+                                                    </button>
+                                                    <% } %>
+                    </div>
+                </div>
+
+            </div>
+            <!-- Detail Modal -->
+            <div id="detailModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+                <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto">
+                    <div class="p-4 sm:p-6 border-b border-gray-100 flex items-center justify-between">
+                        <h3 class="text-lg sm:text-xl font-bold text-lps-blue">Detail Tiket</h3>
+                        <button onclick="closeModal('detailModal')"
+                            class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+                    </div>
+                    <div id="detailContent" class="p-4 sm:p-6">
+                        <p class="text-gray-500">Loading...</p>
+                    </div>
+                    <div class="p-4 sm:p-6 border-t border-gray-100">
+                        <button onclick="closeModal('detailModal')"
+                            class="w-full py-3 border-2 border-gray-200 rounded-lg text-gray-600 font-semibold hover:bg-gray-50 transition-all">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Status Modal -->
+        <div id="editModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="p-4 sm:p-6 border-b border-gray-100 flex items-center justify-between">
+                    <h3 class="text-lg sm:text-xl font-bold text-lps-blue">Edit Status Tiket</h3>
+                    <button onclick="closeModal('editModal')"
+                        class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+                </div>
+                <form id="editForm" class="p-4 sm:p-6 space-y-4">
+                    <input type="hidden" id="editTicketId" name="ticketId">
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Tiket</label>
+                        <input type="text" id="editTicketNo" readonly
+                            class="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg text-gray-600">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Requester</label>
+                        <input type="text" id="editRequester" readonly
+                            class="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg text-gray-600">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                        <input type="text" id="editSubject" readonly
+                            class="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg text-gray-600">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Unit Kerja</label>
+                        <input type="text" id="editUnitKerja" readonly
+                            class="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg text-gray-600">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Request Status <span
+                                class="text-red-500">*</span></label>
+                        <div class="relative w-full" id="editStatusFilterContainer">
+                            <input type="hidden" id="editStatus" name="statusId">
+                            <input type="text" id="editStatusSearchInput" placeholder="Pilih Status" autocomplete="off"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-lg text-gray-700 focus:outline-none focus:border-lps-orange transition-all cursor-pointer">
+
+                            <div id="editStatusDropdown"
+                                class="hidden absolute z-50 w-full modal-dropdown-overrides mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl overflow-y-auto ring-1 ring-black/5 divide-y divide-gray-50 transform origin-top left-0 filter-dropdown-animation">
+                                <% statuses.forEach(s=> { %>
+                                    <div class="px-4 py-3 hover:bg-orange-50 hover:text-lps-orange cursor-pointer text-sm text-gray-600 transition-colors duration-200 edit-status-option group flex items-center justify-between"
+                                        data-name="<%= s.status_name.toLowerCase() %>"
+                                        onclick="selectEditStatus('<%= s.status_id %>', '<%= s.status_name %>')">
+                                        <span class="block truncate">
+                                            <%= s.status_name %>
+                                        </span>
+                                    </div>
+                                    <% }) %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Technician</label>
+                        <div class="relative w-full" id="editTechnicianFilterContainer">
+                            <input type="hidden" id="editTechnician" name="technicianId">
+                            <input type="text" id="editTechnicianSearchInput" placeholder="Pilih Technician"
+                                autocomplete="off"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-lg text-gray-700 focus:outline-none focus:border-lps-orange transition-all cursor-pointer">
+
+                            <div id="editTechnicianDropdown"
+                                class="hidden absolute z-50 w-full modal-dropdown-overrides mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl overflow-y-auto ring-1 ring-black/5 divide-y divide-gray-50 transform origin-top left-0 filter-dropdown-animation">
+                                <div class="px-4 py-3 hover:bg-orange-50 hover:text-lps-orange cursor-pointer text-sm font-medium transition-colors duration-200"
+                                    onclick="selectEditTechnician('', '-- Belum Ditugaskan --')">
+                                    -- Belum Ditugaskan --
+                                </div>
+                                <% technicians.forEach(t=> { %>
+                                    <div class="px-4 py-3 hover:bg-orange-50 hover:text-lps-orange cursor-pointer text-sm text-gray-600 transition-colors duration-200 edit-technician-option group flex items-center justify-between"
+                                        data-name="<%= t.technician_name.toLowerCase() %>"
+                                        onclick="selectEditTechnician('<%= t.technician_id %>', '<%= t.technician_name %>')">
+                                        <span class="block truncate">
+                                            <%= t.technician_name %>
+                                        </span>
+                                    </div>
+                                    <% }) %>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="p-4 sm:p-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3">
+                    <button onclick="closeModal('editModal')"
+                        class="flex-1 py-3 border-2 border-lps-orange rounded-lg text-lps-orange font-semibold hover:bg-orange-50 transition-all">
+                        Batal
+                    </button>
+                    <button onclick="saveChanges()"
+                        class="flex-1 py-3 bg-lps-orange text-white rounded-lg font-semibold hover:bg-lps-orange-light transition-all">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Detail Modal Logic
+            async function showDetail(ticketId) {
+                document.getElementById('detailModal').classList.remove('hidden');
+                document.getElementById('detailModal').classList.add('flex');
+                document.getElementById('detailContent').innerHTML = '<p class="text-gray-500 text-center py-8">Loading...</p>';
+
+                try {
+                    const response = await fetch(`/admin/ticket/${ticketId}`);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        const t = data.ticket;
+                        let statusColor = 'bg-gray-100 text-gray-600';
+                        const statusName = t.status?.status_name || 'Unknown';
+                        if (statusName.toLowerCase() === 'open') statusColor = 'bg-green-100 text-green-700';
+                        else if (statusName.toLowerCase() === 'closed') statusColor = 'bg-blue-100 text-blue-700';
+                        else if (statusName.toLowerCase() === 'on hold') statusColor = 'bg-yellow-100 text-yellow-700';
+                        else if (statusName.toLowerCase() === 'cancelled') statusColor = 'bg-red-100 text-red-700';
+
+                        document.getElementById('detailContent').innerHTML = `
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <p class="text-sm font-bold text-lps-blue mb-1">Nomor Tiket:</p>
+                                <p class="text-gray-700">${t.ticket_id}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-lps-blue mb-1">Tanggal Dibuat:</p>
+                                <p class="text-gray-700">${t.tahun}/${t.bulan}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-lps-orange mb-1">Requester:</p>
+                                <p class="text-gray-700">${t.requester_name}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-lps-orange mb-1">Unit Kerja:</p>
+                                <p class="text-gray-700">${t.unit?.unit_name || '-'}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-lps-orange mb-1">Request Type:</p>
+                                <p class="text-gray-700">${t.request_type?.request_type_name || '-'}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-lps-orange mb-1">Category:</p>
+                                <p class="text-gray-700">${t.category?.category_name || '-'}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-lps-orange mb-1">Subcategory:</p>
+                                <p class="text-gray-700">${t.subcategory?.subcategory_name || '-'}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-lps-orange mb-1">Request Status:</p>
+                                <span class="px-3 py-1 rounded-full text-xs font-bold uppercase ${statusColor}">${statusName}</span>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <p class="text-sm font-bold text-lps-orange mb-1">Subject:</p>
+                            <p class="text-gray-700">${t.subject}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-lps-orange mb-1">Technician:</p>
+                            <p class="text-gray-700">${t.technician?.technician_name || 'Belum ditugaskan'}</p>
+                        </div>
+                    `;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    document.getElementById('detailContent').innerHTML = '<p class="text-red-500 text-center py-8">Gagal memuat detail tiket</p>';
+                }
+            }
+
+            // Show edit modal
+            async function showEditModal(ticketId) {
+                document.getElementById('editModal').classList.remove('hidden');
+                document.getElementById('editModal').classList.add('flex');
+
+                try {
+                    const response = await fetch(`/admin/ticket/${ticketId}`);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        const t = data.ticket;
+                        document.getElementById('editTicketId').value = t.ticket_id;
+                        document.getElementById('editTicketNo').value = t.ticket_id;
+                        document.getElementById('editRequester').value = t.requester_name;
+                        document.getElementById('editSubject').value = t.subject;
+                        document.getElementById('editUnitKerja').value = t.unit?.unit_name || '-';
+
+                        // Populate Status Dropdown
+                        document.getElementById('editStatus').value = t.status_id;
+                        document.getElementById('editStatusSearchInput').value = t.status?.status_name || '';
+
+                        // Populate Technician Dropdown
+                        document.getElementById('editTechnician').value = t.technician_id || '';
+                        document.getElementById('editTechnicianSearchInput').value = t.technician?.technician_name || '-- Belum Ditugaskan --';
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Gagal memuat data tiket'
+                    });
+                    closeModal('editModal');
+                }
+            }
+
+            // Save changes
+            async function saveChanges() {
+                const ticketId = document.getElementById('editTicketId').value;
+                const statusId = document.getElementById('editStatus').value;
+                const technicianId = document.getElementById('editTechnician').value;
+
+                try {
+                    // Update status
+                    await fetch('/admin/ticket/update-status', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ticketId, statusId })
+                    });
+
+                    // Update technician
+                    if (technicianId) {
+                        await fetch('/admin/ticket/assign-technician', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ ticketId, technicianId })
+                        });
+                    }
+
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'Perubahan berhasil disimpan!',
+                        confirmButtonColor: '#3085d6',
+                    });
+                    closeModal('editModal');
+                    location.reload();
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Gagal menyimpan perubahan',
+                    });
+                }
+            }
+
+            // Close modal
+            function closeModal(modalId) {
+                document.getElementById(modalId).classList.add('hidden');
+                document.getElementById(modalId).classList.remove('flex');
+            }
+
+            // Close modal when clicking outside
+            document.getElementById('detailModal').addEventListener('click', function (e) {
+                if (e.target === this) closeModal('detailModal');
+            });
+            document.getElementById('editModal').addEventListener('click', function (e) {
+                if (e.target === this) closeModal('editModal');
+            });
+
+            // Reusable Searchable Dropdown Setup
+            function setupSearchableDropdown(config) {
+                const container = document.getElementById(config.containerId);
+                const input = document.getElementById(config.inputId);
+                const hiddenInput = document.getElementById(config.hiddenInputId);
+                const dropdown = document.getElementById(config.dropdownId);
+                const options = document.querySelectorAll(config.optionClass);
+                const defaultText = config.defaultText;
+
+                // Toggle
+                input.addEventListener('click', () => {
+                    // close other dropdowns if needed, for now just toggle this one
+                    document.querySelectorAll('.filter-dropdown-animation').forEach(el => {
+                        if (el !== dropdown) el.classList.add('hidden');
+                    });
+                    dropdown.classList.toggle('hidden');
+                });
+
+                // Filter
+                input.addEventListener('input', (e) => {
+                    dropdown.classList.remove('hidden');
+                    const val = e.target.value.toLowerCase();
+                    options.forEach(opt => {
+                        const name = opt.dataset.name.toLowerCase();
+                        if (name.includes(val)) {
+                            opt.classList.remove('hidden');
+                        } else {
+                            opt.classList.add('hidden');
+                        }
+                    });
+                });
+
+                // Focus/Blur for default text
+                input.addEventListener('focus', function () {
+                    if (this.value === defaultText) this.value = '';
+                });
+                input.addEventListener('blur', function () {
+                    if (this.value === '') this.value = defaultText;
+                });
+
+                // Close when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!container.contains(e.target)) {
+                        dropdown.classList.add('hidden');
+                    }
+                });
+
+                // Expose select function globally for onclick
+                window[config.selectFunctionName] = function (id, name) {
+                    hiddenInput.value = id;
+                    input.value = name || defaultText;
+                    dropdown.classList.add('hidden');
+
+                    // Show/hide clear button logic if needed, or simple selection
+                    // Reset options visibility
+                    options.forEach(opt => opt.classList.remove('hidden'));
+                };
+            }
+
+            // Initialize Unit Filter
+            setupSearchableDropdown({
+                containerId: 'unitFilterContainer',
+                inputId: 'unitSearchInput',
+                hiddenInputId: 'unitInputHidden',
+                dropdownId: 'unitDropdown',
+                optionClass: '.unit-option',
+                defaultText: 'Semua Unit Kerja',
+                selectFunctionName: 'selectUnit'
+            });
+
+            // Initialize Status Filter
+            setupSearchableDropdown({
+                containerId: 'statusFilterContainer',
+                inputId: 'statusSearchInput',
+                hiddenInputId: 'statusInputHidden',
+                dropdownId: 'statusDropdown',
+                optionClass: '.status-option',
+                defaultText: 'Semua Status',
+                selectFunctionName: 'selectStatus'
+            });
+
+            // Initialize Bulan Filter
+            setupSearchableDropdown({
+                containerId: 'bulanFilterContainer',
+                inputId: 'bulanSearchInput',
+                hiddenInputId: 'bulanInputHidden',
+                dropdownId: 'bulanDropdown',
+                optionClass: '.bulan-option',
+                defaultText: 'Semua Bulan',
+                selectFunctionName: 'selectBulan'
+            });
+
+            // Initialize Tahun Filter
+            setupSearchableDropdown({
+                containerId: 'tahunFilterContainer',
+                inputId: 'tahunSearchInput',
+                hiddenInputId: 'tahunInputHidden',
+                dropdownId: 'tahunDropdown',
+                optionClass: '.tahun-option',
+                defaultText: 'Semua Tahun',
+                selectFunctionName: 'selectTahun'
+            });
+            // Initialize Edit Status Dropdown
+            setupSearchableDropdown({
+                containerId: 'editStatusFilterContainer',
+                inputId: 'editStatusSearchInput',
+                hiddenInputId: 'editStatus',
+                dropdownId: 'editStatusDropdown',
+                optionClass: '.edit-status-option',
+                defaultText: 'Pilih Status',
+                selectFunctionName: 'selectEditStatus'
+            });
+
+            // Initialize Edit Technician Dropdown
+            setupSearchableDropdown({
+                containerId: 'editTechnicianFilterContainer',
+                inputId: 'editTechnicianSearchInput',
+                hiddenInputId: 'editTechnician',
+                dropdownId: 'editTechnicianDropdown',
+                optionClass: '.edit-technician-option',
+                defaultText: 'Pilih Technician',
+                selectFunctionName: 'selectEditTechnician'
+            });
+        </script>
+    </body>
+
+    </html>
