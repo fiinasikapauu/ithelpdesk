@@ -36,7 +36,7 @@
 
         <!-- Power BI Button -->
         <div class="max-w-7xl mx-auto px-4 mt-6">
-            <a href="https://app.powerbi.com/links/bNGE0oi8sH?ctid=34627874-ed3a-497c-8fb9-16ce7e9764f1&pbi_source=linkShare"
+            <a href="https://app.powerbi.com/links/cLsU4utdPm?ctid=34627874-ed3a-497c-8fb9-16ce7e9764f1&pbi_source=linkShare&bookmarkGuid=10976739-4e6c-46ef-9c15-c4a276f0e75e"
                 target="_blank"
                 class="block w-full bg-gradient-to-r from-lps-orange to-lps-orange-light text-white text-center py-4 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -582,6 +582,61 @@
                     </div>
 
                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Request Type <span
+                                class="text-red-500">*</span></label>
+                        <div class="relative w-full" id="editRequestTypeFilterContainer">
+                            <input type="hidden" id="editRequestType" name="requestTypeId">
+                            <input type="text" id="editRequestTypeSearchInput" placeholder="Pilih Request Type"
+                                autocomplete="off"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-lg text-gray-700 focus:outline-none focus:border-lps-orange transition-all cursor-pointer">
+
+                            <div id="editRequestTypeDropdown"
+                                class="hidden absolute z-50 w-full modal-dropdown-overrides mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl overflow-y-auto ring-1 ring-black/5 divide-y divide-gray-50 transform origin-top left-0 filter-dropdown-animation">
+                                <% requestTypes.forEach(rt=> { %>
+                                    <div class="px-4 py-3 hover:bg-orange-50 hover:text-lps-orange cursor-pointer text-sm text-gray-600 transition-colors duration-200 edit-request-type-option group flex items-center justify-between"
+                                        data-id="<%= rt.request_type_id %>"
+                                        data-name="<%= rt.request_type_name.toLowerCase() %>"
+                                        onclick="selectEditRequestType('<%= rt.request_type_id %>', '<%= rt.request_type_name %>')">
+                                        <span class="block truncate">
+                                            <%= rt.request_type_name %>
+                                        </span>
+                                    </div>
+                                    <% }) %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Category <span
+                                class="text-red-500">*</span></label>
+                        <div class="relative w-full" id="editCategoryFilterContainer">
+                            <input type="hidden" id="editCategory" name="categoryId">
+                            <input type="text" id="editCategorySearchInput" placeholder="Pilih Category"
+                                autocomplete="off"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-lg text-gray-700 focus:outline-none focus:border-lps-orange transition-all cursor-pointer">
+
+                            <div id="editCategoryDropdown"
+                                class="hidden absolute z-50 w-full modal-dropdown-overrides mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl overflow-y-auto ring-1 ring-black/5 divide-y divide-gray-50 transform origin-top left-0 filter-dropdown-animation">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Subcategory <span
+                                class="text-red-500">*</span></label>
+                        <div class="relative w-full" id="editSubcategoryFilterContainer">
+                            <input type="hidden" id="editSubcategory" name="subcategoryId">
+                            <input type="text" id="editSubcategorySearchInput" placeholder="Pilih Subcategory"
+                                autocomplete="off"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-lg text-gray-700 focus:outline-none focus:border-lps-orange transition-all cursor-pointer">
+
+                            <div id="editSubcategoryDropdown"
+                                class="hidden absolute z-50 w-full modal-dropdown-overrides mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl overflow-y-auto ring-1 ring-black/5 divide-y divide-gray-50 transform origin-top left-0 filter-dropdown-animation">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Request Status <span
                                 class="text-red-500">*</span></label>
                         <div class="relative w-full" id="editStatusFilterContainer">
@@ -672,7 +727,7 @@
                             </div>
                             <div>
                                 <p class="text-sm font-bold text-lps-blue mb-1">Tanggal Dibuat:</p>
-                                <p class="text-gray-700">${t.tahun}/${t.bulan}</p>
+                                <p class="text-gray-700">${t.tanggal || '-'}/${t.bulan}/${t.tahun}</p>
                             </div>
                             <div>
                                 <p class="text-sm font-bold text-lps-orange mb-1">Requester:</p>
@@ -703,9 +758,22 @@
                             <p class="text-sm font-bold text-lps-orange mb-1">Subject:</p>
                             <p class="text-gray-700">${t.subject}</p>
                         </div>
-                        <div>
+                        <div class="mb-4">
                             <p class="text-sm font-bold text-lps-orange mb-1">Technician:</p>
                             <p class="text-gray-700">${t.technician?.technician_name || 'Belum ditugaskan'}</p>
+                        </div>
+                        <div class="border-t border-gray-200 pt-4 mt-4">
+                            <p class="text-sm font-bold text-gray-600 mb-3">Log Aktivitas</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-xs font-medium text-gray-500 mb-1">Log Status (Terakhir Update):</p>
+                                    <p class="text-sm text-gray-700">${t.log_status ? new Date(t.log_status).toLocaleString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-medium text-gray-500 mb-1">Log Technician (Terakhir Update):</p>
+                                    <p class="text-sm text-gray-700">${t.log_technician ? new Date(t.log_technician).toLocaleString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}</p>
+                                </div>
+                            </div>
                         </div>
                     `;
                     }
@@ -714,6 +782,10 @@
                     document.getElementById('detailContent').innerHTML = '<p class="text-red-500 text-center py-8">Gagal memuat detail tiket</p>';
                 }
             }
+
+            // Track original values for change detection
+            let originalTechnicianId = '';
+            let originalStatusId = '';
 
             // Show edit modal
             async function showEditModal(ticketId) {
@@ -732,11 +804,27 @@
                         document.getElementById('editSubject').value = t.subject;
                         document.getElementById('editUnitKerja').value = t.unit?.unit_name || '-';
 
+                        // Populate Request Type Dropdown
+                        document.getElementById('editRequestType').value = t.request_type_id || '';
+                        document.getElementById('editRequestTypeSearchInput').value = t.request_type?.request_type_name || '';
+
+                        // Load categories for current request type and populate Category dropdown
+                        if (t.request_type_id) {
+                            await loadCategoriesForRequestType(t.request_type_id, t.category_id, t.category?.category_name);
+                        }
+
+                        // Load subcategories for current category and populate Subcategory dropdown
+                        if (t.category_id) {
+                            await loadSubcategoriesForCategory(t.category_id, t.subcategory_id, t.subcategory?.subcategory_name);
+                        }
+
                         // Populate Status Dropdown
+                        originalStatusId = t.status_id || '';
                         document.getElementById('editStatus').value = t.status_id;
                         document.getElementById('editStatusSearchInput').value = t.status?.status_name || '';
 
                         // Populate Technician Dropdown
+                        originalTechnicianId = t.technician_id || '';
                         document.getElementById('editTechnician').value = t.technician_id || '';
                         document.getElementById('editTechnicianSearchInput').value = t.technician?.technician_name || '-- Belum Ditugaskan --';
                     }
@@ -751,22 +839,138 @@
                 }
             }
 
+            // Load categories for a request type
+            async function loadCategoriesForRequestType(requestTypeId, selectedCategoryId = '', selectedCategoryName = '') {
+                const dropdown = document.getElementById('editCategoryDropdown');
+                dropdown.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500">Loading...</div>';
+
+                try {
+                    const response = await fetch(`/admin/categories/${requestTypeId}`);
+                    const data = await response.json();
+
+                    if (data.success && data.categories.length > 0) {
+                        dropdown.innerHTML = data.categories.map(cat => `
+                            <div class="px-4 py-3 hover:bg-orange-50 hover:text-lps-orange cursor-pointer text-sm text-gray-600 transition-colors duration-200 edit-category-option group flex items-center justify-between"
+                                data-id="${cat.category_id}"
+                                data-name="${cat.category_name.toLowerCase()}"
+                                onclick="selectEditCategory('${cat.category_id}', '${cat.category_name}')">
+                                <span class="block truncate">${cat.category_name}</span>
+                            </div>
+                        `).join('');
+                    } else {
+                        dropdown.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500">Tidak ada kategori</div>';
+                    }
+
+                    // Set selected value
+                    document.getElementById('editCategory').value = selectedCategoryId;
+                    document.getElementById('editCategorySearchInput').value = selectedCategoryName;
+
+                } catch (error) {
+                    console.error('Error loading categories:', error);
+                    dropdown.innerHTML = '<div class="px-4 py-3 text-sm text-red-500">Gagal memuat kategori</div>';
+                }
+            }
+
+            // Load subcategories for a category
+            async function loadSubcategoriesForCategory(categoryId, selectedSubcategoryId = '', selectedSubcategoryName = '') {
+                const dropdown = document.getElementById('editSubcategoryDropdown');
+                dropdown.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500">Loading...</div>';
+
+                try {
+                    const response = await fetch(`/admin/subcategories/${categoryId}`);
+                    const data = await response.json();
+
+                    if (data.success && data.subcategories.length > 0) {
+                        dropdown.innerHTML = data.subcategories.map(sub => `
+                            <div class="px-4 py-3 hover:bg-orange-50 hover:text-lps-orange cursor-pointer text-sm text-gray-600 transition-colors duration-200 edit-subcategory-option group flex items-center justify-between"
+                                data-id="${sub.subcategory_id}"
+                                data-name="${sub.subcategory_name.toLowerCase()}"
+                                onclick="selectEditSubcategory('${sub.subcategory_id}', '${sub.subcategory_name}')">
+                                <span class="block truncate">${sub.subcategory_name}</span>
+                            </div>
+                        `).join('');
+                    } else {
+                        dropdown.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500">Tidak ada subkategori</div>';
+                    }
+
+                    // Set selected value
+                    document.getElementById('editSubcategory').value = selectedSubcategoryId;
+                    document.getElementById('editSubcategorySearchInput').value = selectedSubcategoryName;
+
+                } catch (error) {
+                    console.error('Error loading subcategories:', error);
+                    dropdown.innerHTML = '<div class="px-4 py-3 text-sm text-red-500">Gagal memuat subkategori</div>';
+                }
+            }
+
+            // Select Request Type handler
+            function selectEditRequestType(id, name) {
+                document.getElementById('editRequestType').value = id;
+                document.getElementById('editRequestTypeSearchInput').value = name;
+                document.getElementById('editRequestTypeDropdown').classList.add('hidden');
+
+                // Clear Category and Subcategory
+                document.getElementById('editCategory').value = '';
+                document.getElementById('editCategorySearchInput').value = '';
+                document.getElementById('editSubcategory').value = '';
+                document.getElementById('editSubcategorySearchInput').value = '';
+                document.getElementById('editSubcategoryDropdown').innerHTML = '';
+
+                // Load categories for this request type
+                loadCategoriesForRequestType(id);
+            }
+
+            // Select Category handler
+            function selectEditCategory(id, name) {
+                document.getElementById('editCategory').value = id;
+                document.getElementById('editCategorySearchInput').value = name;
+                document.getElementById('editCategoryDropdown').classList.add('hidden');
+
+                // Clear Subcategory
+                document.getElementById('editSubcategory').value = '';
+                document.getElementById('editSubcategorySearchInput').value = '';
+
+                // Load subcategories for this category
+                loadSubcategoriesForCategory(id);
+            }
+
+            // Select Subcategory handler
+            function selectEditSubcategory(id, name) {
+                document.getElementById('editSubcategory').value = id;
+                document.getElementById('editSubcategorySearchInput').value = name;
+                document.getElementById('editSubcategoryDropdown').classList.add('hidden');
+            }
+
             // Save changes
             async function saveChanges() {
                 const ticketId = document.getElementById('editTicketId').value;
+                const requestTypeId = document.getElementById('editRequestType').value;
+                const categoryId = document.getElementById('editCategory').value;
+                const subcategoryId = document.getElementById('editSubcategory').value;
                 const statusId = document.getElementById('editStatus').value;
                 const technicianId = document.getElementById('editTechnician').value;
 
                 try {
-                    // Update status
-                    await fetch('/admin/ticket/update-status', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ ticketId, statusId })
-                    });
+                    // Update category data (request type, category, subcategory)
+                    if (requestTypeId && categoryId && subcategoryId) {
+                        await fetch('/admin/ticket/update-category', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ ticketId, requestTypeId, categoryId, subcategoryId })
+                        });
+                    }
 
-                    // Update technician
-                    if (technicianId) {
+                    // Update status (only if changed)
+                    if (statusId && statusId !== originalStatusId) {
+                        await fetch('/admin/ticket/update-status', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ ticketId, statusId })
+                        });
+                    }
+
+                    // Update technician (only if changed)
+                    if (technicianId && technicianId !== originalTechnicianId) {
                         await fetch('/admin/ticket/assign-technician', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -929,6 +1133,109 @@
                 defaultText: 'Pilih Technician',
                 selectFunctionName: 'selectEditTechnician'
             });
+
+            // Setup dynamic dropdown toggle and search for Request Type
+            // (NOT using setupSearchableDropdown to preserve custom selectEditRequestType handler)
+            (function () {
+                const container = document.getElementById('editRequestTypeFilterContainer');
+                const input = document.getElementById('editRequestTypeSearchInput');
+                const dropdown = document.getElementById('editRequestTypeDropdown');
+
+                input.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-dropdown-animation').forEach(el => {
+                        if (el !== dropdown) el.classList.add('hidden');
+                    });
+                    dropdown.classList.toggle('hidden');
+                });
+
+                input.addEventListener('input', (e) => {
+                    dropdown.classList.remove('hidden');
+                    const val = e.target.value.toLowerCase();
+                    const options = dropdown.querySelectorAll('.edit-request-type-option');
+                    options.forEach(opt => {
+                        const name = opt.dataset.name || '';
+                        if (name.includes(val)) {
+                            opt.classList.remove('hidden');
+                        } else {
+                            opt.classList.add('hidden');
+                        }
+                    });
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!container.contains(e.target)) {
+                        dropdown.classList.add('hidden');
+                    }
+                });
+            })();
+
+            // Setup dynamic dropdown toggle and search for Category
+            (function () {
+                const container = document.getElementById('editCategoryFilterContainer');
+                const input = document.getElementById('editCategorySearchInput');
+                const dropdown = document.getElementById('editCategoryDropdown');
+
+                input.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-dropdown-animation').forEach(el => {
+                        if (el !== dropdown) el.classList.add('hidden');
+                    });
+                    dropdown.classList.toggle('hidden');
+                });
+
+                input.addEventListener('input', (e) => {
+                    dropdown.classList.remove('hidden');
+                    const val = e.target.value.toLowerCase();
+                    const options = dropdown.querySelectorAll('.edit-category-option');
+                    options.forEach(opt => {
+                        const name = opt.dataset.name || '';
+                        if (name.includes(val)) {
+                            opt.classList.remove('hidden');
+                        } else {
+                            opt.classList.add('hidden');
+                        }
+                    });
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!container.contains(e.target)) {
+                        dropdown.classList.add('hidden');
+                    }
+                });
+            })();
+
+            // Setup dynamic dropdown toggle and search for Subcategory
+            (function () {
+                const container = document.getElementById('editSubcategoryFilterContainer');
+                const input = document.getElementById('editSubcategorySearchInput');
+                const dropdown = document.getElementById('editSubcategoryDropdown');
+
+                input.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-dropdown-animation').forEach(el => {
+                        if (el !== dropdown) el.classList.add('hidden');
+                    });
+                    dropdown.classList.toggle('hidden');
+                });
+
+                input.addEventListener('input', (e) => {
+                    dropdown.classList.remove('hidden');
+                    const val = e.target.value.toLowerCase();
+                    const options = dropdown.querySelectorAll('.edit-subcategory-option');
+                    options.forEach(opt => {
+                        const name = opt.dataset.name || '';
+                        if (name.includes(val)) {
+                            opt.classList.remove('hidden');
+                        } else {
+                            opt.classList.add('hidden');
+                        }
+                    });
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!container.contains(e.target)) {
+                        dropdown.classList.add('hidden');
+                    }
+                });
+            })();
         </script>
     </body>
 

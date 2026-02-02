@@ -1,6 +1,11 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+// Helper function to get current time (system is already in WIB)
+function getWIBDate() {
+    return new Date();
+}
+
 const adminController = {
     // GET /admin/dashboard - Show dashboard with tickets
     dashboard: async (req, res) => {
@@ -68,6 +73,9 @@ const adminController = {
             const statuses = await prisma.it_helpdesk_request_statuses.findMany();
             const units = await prisma.it_helpdesk_units.findMany();
             const technicians = await prisma.it_helpdesk_technicians.findMany();
+            const requestTypes = await prisma.it_helpdesk_request_types.findMany();
+            const categories = await prisma.it_helpdesk_categories.findMany();
+            const subcategories = await prisma.it_helpdesk_subcategories.findMany();
 
             // Get unique years from tickets
             const years = await prisma.it_helpdesk_tickets.findMany({
@@ -91,6 +99,9 @@ const adminController = {
                 statuses,
                 units,
                 technicians,
+                requestTypes,
+                categories,
+                subcategories,
                 years: years.map(y => y.tahun),
                 ticketCounts,
                 filters: { status, unit, bulan, tahun, search },
@@ -120,7 +131,7 @@ const adminController = {
 
             await prisma.it_helpdesk_tickets.update({
                 where: { ticket_id: ticketId },
-                data: { status_id: statusId }
+                data: { status_id: statusId, log_status: getWIBDate() }
             });
 
             res.json({ success: true, message: 'Status berhasil diperbarui' });
@@ -137,7 +148,7 @@ const adminController = {
 
             await prisma.it_helpdesk_tickets.update({
                 where: { ticket_id: ticketId },
-                data: { technician_id: technicianId }
+                data: { technician_id: technicianId, log_technician: getWIBDate() }
             });
 
             res.json({ success: true, message: 'Teknisi berhasil ditugaskan' });
@@ -173,6 +184,59 @@ const adminController = {
         } catch (error) {
             console.error('Get ticket detail error:', error);
             res.status(500).json({ success: false, message: 'Gagal mengambil detail tiket' });
+        }
+    },
+
+    // GET /admin/categories/:requestTypeId - Get categories by request type
+    getCategoriesByRequestType: async (req, res) => {
+        try {
+            const { requestTypeId } = req.params;
+
+            const categories = await prisma.it_helpdesk_categories.findMany({
+                where: { request_type_id: requestTypeId }
+            });
+
+            res.json({ success: true, categories });
+        } catch (error) {
+            console.error('Get categories error:', error);
+            res.status(500).json({ success: false, message: 'Gagal mengambil kategori' });
+        }
+    },
+
+    // GET /admin/subcategories/:categoryId - Get subcategories by category
+    getSubcategoriesByCategory: async (req, res) => {
+        try {
+            const { categoryId } = req.params;
+
+            const subcategories = await prisma.it_helpdesk_subcategories.findMany({
+                where: { category_id: categoryId }
+            });
+
+            res.json({ success: true, subcategories });
+        } catch (error) {
+            console.error('Get subcategories error:', error);
+            res.status(500).json({ success: false, message: 'Gagal mengambil subkategori' });
+        }
+    },
+
+    // POST /admin/ticket/update-category - Update ticket request type, category, subcategory
+    updateTicketCategory: async (req, res) => {
+        try {
+            const { ticketId, requestTypeId, categoryId, subcategoryId } = req.body;
+
+            await prisma.it_helpdesk_tickets.update({
+                where: { ticket_id: ticketId },
+                data: {
+                    request_type_id: requestTypeId,
+                    category_id: categoryId,
+                    subcategory_id: subcategoryId
+                }
+            });
+
+            res.json({ success: true, message: 'Kategori tiket berhasil diperbarui' });
+        } catch (error) {
+            console.error('Update ticket category error:', error);
+            res.status(500).json({ success: false, message: 'Gagal memperbarui kategori tiket' });
         }
     },
 
