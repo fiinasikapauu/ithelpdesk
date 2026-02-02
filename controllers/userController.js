@@ -1,6 +1,11 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+// Helper function to get current time (system is already in WIB)
+function getWIBDate() {
+    return new Date();
+}
+
 const userController = {
     // GET /user/form - Render ticket submission form with dropdown data from DB
     showForm: async (req, res) => {
@@ -112,9 +117,10 @@ const userController = {
             while (attempts < maxAttempts && !ticket) {
                 try {
                     const ticketId = String(currentNextNumber);
-                    const now = new Date();
-                    const tahun = String(now.getFullYear());
-                    const bulan = String(now.getMonth() + 1).padStart(2, '0');
+                    const wibNow = getWIBDate();
+                    const tahun = String(wibNow.getFullYear());
+                    const bulan = String(wibNow.getMonth() + 1).padStart(2, '0');
+                    const tanggal = String(wibNow.getDate()).padStart(2, '0');
 
                     ticket = await prisma.it_helpdesk_tickets.create({
                         data: {
@@ -129,7 +135,9 @@ const userController = {
                             technician_id: null,
                             user_id: req.session.userId,
                             tahun,
-                            bulan
+                            bulan,
+                            tanggal,
+                            log_status: wibNow
                         }
                     });
                 } catch (createError) {
@@ -189,10 +197,12 @@ const userController = {
             const mapped = tickets.map(t => {
                 const yearNum = parseInt(t.tahun, 10) || new Date().getFullYear();
                 const monthNum = parseInt(t.bulan, 10) || 1;
-                const createdAt = new Date(yearNum, monthNum - 1, 1).toISOString();
+                const dayNum = parseInt(t.tanggal, 10) || 1;
+                const createdAt = new Date(yearNum, monthNum - 1, dayNum).toISOString();
 
                 return {
                     noTiket: t.ticket_id,
+                    tanggal: dayNum,
                     bulan: monthNum,
                     tahun: yearNum,
                     requester: t.requester_name,
