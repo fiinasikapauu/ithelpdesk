@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "dev": "concurrently \"npx tailwindcss -i ./styles/input.css -o ./public/stylesheets/style.css --watch\" \"node ./bin/www\""
+    "dev": "concurrently \"npx tailwindcss -i ./public/stylesheets/input.css -o ./public/stylesheets/style.css --watch\" \"node ./bin/www\""
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
