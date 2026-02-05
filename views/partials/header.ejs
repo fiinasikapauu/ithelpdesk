@@ -22,9 +22,29 @@
                     <a href="/user/riwayat"
                         class="px-5 py-2 rounded-lg text-sm font-semibold transition-all <%= typeof activePage !== 'undefined' && activePage === 'riwayat' ? 'bg-lps-orange text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-300 hover:border-lps-orange' %>">Riwayat
                         Pengaduan</a>
-                    <a href="/auth/logout"
+                    <a href="#" onclick="confirmLogout(event)"
                         class="px-5 py-2 rounded-lg text-sm font-semibold bg-white text-gray-700 border border-gray-300 transition-all hover:bg-lps-orange hover:border-lps-orange">Logout</a>
                     <% } %>
         </nav>
     </div>
 </header>
+
+<script>
+    function confirmLogout(e) {
+        e.preventDefault();
+        Swal.fire({
+            title: 'Konfirmasi Logout',
+            text: "Apakah Anda yakin ingin keluar?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#D98727',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Logout',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/auth/logout';
+            }
+        });
+    }
+</script>
