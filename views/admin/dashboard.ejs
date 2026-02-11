@@ -38,7 +38,7 @@
         <div class="max-w-7xl mx-auto px-4 mt-6">
             <a href="https://app.powerbi.com/links/cLsU4utdPm?ctid=34627874-ed3a-497c-8fb9-16ce7e9764f1&pbi_source=linkShare&bookmarkGuid=fc400aa9-dd36-4cbb-b076-2489dc21fa5b"
                 target="_blank"
-                class="block w-full bg-gradient-to-r from-lps-orange to-lps-orange-light text-white text-center py-4 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                class="block w-full bg-lps-orange text-white text-center py-4 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                     <line x1="3" y1="9" x2="21" y2="9"></line>
@@ -236,6 +236,9 @@
                                     Tiket</th>
                                 <th
                                     class="text-left py-4 px-3 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                    Tanggal</th>
+                                <th
+                                    class="text-left py-4 px-3 text-xs font-bold text-gray-500 uppercase tracking-wider">
                                     Unit Kerja</th>
                                 <th
                                     class="text-left py-4 px-3 text-xs font-bold text-gray-500 uppercase tracking-wider">
@@ -275,6 +278,9 @@
                                         <tr class="hover:bg-gray-50 transition-colors">
                                             <td class="py-4 px-3 text-sm font-bold text-gray-800">
                                                 <%= ticket.ticket_id %>
+                                            </td>
+                                            <td class="py-4 px-3 text-sm text-gray-600">
+                                                <%= ticket.tanggal || '-' %>/<%= ticket.bulan %>/<%= ticket.tahun %>
                                             </td>
                                             <td class="py-4 px-3 text-sm text-gray-600 max-w-[120px] truncate"
                                                 title="<%= ticket.unit?.unit_name || '-' %>">
@@ -363,7 +369,7 @@
                                             <p class="text-sm font-bold text-gray-800">Tiket #<%= ticket.ticket_id %>
                                             </p>
                                             <p class="text-xs text-gray-500">
-                                                <%= ticket.tahun %>/<%= ticket.bulan %>
+                                                <%= ticket.tanggal || '-' %>/<%= ticket.bulan %>/<%= ticket.tahun %>
                                             </p>
                                         </div>
                                         <% let mobileStatusColor='bg-gray-100 text-gray-600' ; let
