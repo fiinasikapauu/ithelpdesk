@@ -131,7 +131,12 @@
                     // Desktop Table
                     tbody.innerHTML = tickets.map(ticket => {
                         const statusStyle = statusStyles[ticket.requestStatus] || 'bg-gray-100 text-gray-600';
-                        const formattedDate = `${ticket.tanggal} ${monthNames[ticket.bulan - 1]} ${ticket.tahun}`;
+
+                        let formattedDate = '-';
+                        if (ticket.bulan && ticket.tahun) {
+                            const d = ticket.tanggal || '-';
+                            formattedDate = `${d}/${ticket.bulan}/${ticket.tahun}`;
+                        }
 
                         return `
                         <tr class="hover:bg-gray-50 transition-colors">
@@ -158,7 +163,12 @@
                     // Mobile Cards
                     mobileCards.innerHTML = tickets.map(ticket => {
                         const statusStyle = statusStyles[ticket.requestStatus] || 'bg-gray-100 text-gray-600';
-                        const formattedDate = `${ticket.tanggal} ${monthNames[ticket.bulan - 1]} ${ticket.tahun}`;
+
+                        let formattedDate = '-';
+                        if (ticket.bulan && ticket.tahun) {
+                            const d = ticket.tanggal || '-';
+                            formattedDate = `${d}/${ticket.bulan}/${ticket.tahun}`;
+                        }
 
                         return `
                         <div class="bg-gray-50 rounded-lg p-4 border border-gray-100">

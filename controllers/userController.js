@@ -195,10 +195,14 @@ const userController = {
             });
 
             const mapped = tickets.map(t => {
-                const yearNum = parseInt(t.tahun, 10) || new Date().getFullYear();
-                const monthNum = parseInt(t.bulan, 10) || 1;
-                const dayNum = parseInt(t.tanggal, 10) || 1;
-                const createdAt = new Date(yearNum, monthNum - 1, dayNum).toISOString();
+                const yearNum = t.tahun ? parseInt(t.tahun, 10) : null;
+                const monthNum = t.bulan ? parseInt(t.bulan, 10) : null;
+                const dayNum = t.tanggal ? parseInt(t.tanggal, 10) : null;
+
+                let createdAt = null;
+                if (yearNum && monthNum && dayNum) {
+                    createdAt = new Date(yearNum, monthNum - 1, dayNum).toISOString();
+                }
 
                 return {
                     noTiket: t.ticket_id,
